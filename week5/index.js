@@ -40,3 +40,58 @@ app.get('/GetStudents', (req, res) => {
         }); 
     }); 
 }); 
+app.get('/GetStudent/:id', (req, res) => { 
+ 
+    console.log("GetStudent called"); 
+ 
+    fs.readFile(__dirname + "/students.json", "utf8", (err, data) => { 
+ 
+        if (err) { 
+            return res.status(500).json({ 
+                status: false, 
+                statusCode: 500,
+                 message: "Error reading Students.json" 
+                 
+            }); 
+        } 
+ 
+        const students = JSON.parse(data); 
+        const student = students["Student" + req.params.id]; 
+ 
+        console.log(student); 
+ 
+        if (student) { 
+            res.status(200).json(student); 
+        } else { 
+            res.status(404).json({ 
+                status: false, 
+                statusCode: 404, 
+                message: "Student Not Found", 
+                requestedAt: new Date().toISOString(), 
+                requestUrl: req.originalUrl, 
+                requestMethod: req.method 
+            }); 
+        } 
+    }); 
+}); 
+// showing html form 
+app.get('/studentinfo', (req, res) => { 
+res.sendFile('Studentinfo.html', { root: __dirname }); 
+}); 
+app.post('/submit-data', (req, res) => { 
+const name = req.body.firstName + ' ' + req.body.lastName; 
+const age = req.body.myAge  
+const Gender = ' Gender: ' + req.body.gender; 
+const qual = 'Qualification: ' + req.body.Qual; 
+console.log(req.body.Qual); 
+res.send({ 
+status: true, 
+message: 'Form Details', 
+data: { 
+name: name, 
+age: age, 
+gender: Gender, 
+qualification: qual 
+} 
+}); 
+});
