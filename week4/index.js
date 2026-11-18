@@ -9,118 +9,137 @@ const PersonSchema = new mongoose.Schema({
     }, 
     age: Number, 
     gender: String, 
-    salary: Number 
+    salary: Number, 
+    city: String
 }); 
  
-const Person = mongoose.model( 
-    'modelname', 
-    PersonSchema, 
-    'personCollection' 
-); 
- 
-// Function to insert one document 
-async function insertOne() { 
- 
-    const doc1 = new  Person( 
-{  name:  'Yousuf',age:44,gender:"Male",salary:3456} 
-); 
+const Person = mongoose.model('modelname', PersonSchema, 'personCollection');
 
-    const savedDoc = await doc1.save(); 
-    console.log('One document inserted'); 
-    console.log(savedDoc);
-}
- 
-// Function to insert many documents 
-async function insertMany() { 
- 
-    const manypersons = [  
-        { name: 'SimonNHQ', age: 42, gender: 'Male', salary: 3456 }, 
-        { name: 'NeeshaNN', age: 53, gender: 'Female', salary: 1000 }, 
-        { name: 'MaryNHQ', age: 27, gender: 'Female', salary: 5402 }, 
-        { name: 'MikeNJQ', age: 40, gender: 'Male', salary: 4519 } 
-    ]; 
- 
-    const result = await Person.insertMany(manypersons); 
- 
-    console.log('Many documents inserted'); 
-    console.log(result); 
-} 
 
-async function findAll() { 
- 
-    const docs = await Person.find({}) 
-        .sort({ salary: 1 })      // sort by salary ascending 
-        .select('name salary age') 
-        .limit(100); 
- 
-    console.log("Showing multiple documents"); 
- 
-    docs.forEach(doc => { 
-        console.log(doc.age, doc.name, doc.salary); 
-    }); 
-} 
-async function findFemalesOver30() { 
- 
-    const givenAge = 30; 
- 
-    const docs = await Person.find({ 
-        gender: 'Female', 
-        age: { $gte: givenAge } 
-    }) 
-    .sort({ salary: 1 }) 
-    .select('name salary age') 
-    .limit(10); 
- 
-    console.log(`Females aged ${givenAge} or above:`); 
- 
-    docs.forEach(doc => { 
-        console.log(doc.age, doc.name, doc.salary); 
-    }); 
+async function insertOne() {
+
+  const saved = await new Person({
+
+    name: 'NHQ', age: 32, gender: 'Male', salary: 1234, city: 'London'
+
+  }).save();
+
+  console.log('One document inserted:', saved);
+
 }
-// Count all documents 
-async function countDocuments() { 
-const count = await Person.countDocuments(); 
-console.log("Total Documents Count:", count); 
-} 
-async function deleteManyPersons() { 
-const result = await Person.deleteMany({ 
-age: { $gte: 45 } 
-}); 
-console.log("Deleted documents:", result); 
-} 
-async function updateManyPersons() { 
-const result = await Person.updateMany( 
-{ gender: "Female" }, 
-{ salary: 5555 } 
-); 
-console.log("Update successful"); 
-console.log(result); 
+
+async function insertMany() {
+
+  const result = await Person.insertMany([
+
+    { name: 'SimonNHQ', age: 42, gender: 'Male', salary: 3456, city: 'London' },
+
+    { name: 'NeeshaNN', age: 53, gender: 'Female', salary: 1000, city: 'Manchester' },
+
+    { name: 'MaryNHQ', age: 27, gender: 'Female', salary: 5402, city: 'London' },
+
+    { name: 'MikeNJQ', age: 40, gender: 'Male', salary: 4519, city: 'Birmingham' }
+
+  ]);
+
+  console.log('Many documents inserted:', result.length);
+
 }
-async function main(){
- try { 
- 
-        await mongoose.connect(MONGO_URI); 
-        console.log(`Connected to ${MONGO_URI}`); 
- 
-       await insertOne(); 
- 
-        await insertMany(); 
-        await findAll()
-        await findFemalesOver30()  
-        await countDocuments() 
-        await deleteManyPersons()
-        await updateManyPersons() 
- 
-        } catch (err) { 
- 
-        console.error('Error:', err); 
- 
-    } finally { 
- 
-        await mongoose.connection.close(); 
-        console.log('Connection closed'); 
- 
-    } 
-} 
- 
+
+async function findAll() {
+
+  const docs = await Person.find({}).sort({ salary: 1 })
+
+    .select('name salary age').limit(100);
+
+  console.log('Showing multiple documents:');
+
+  docs.forEach(d => console.log(d.age, d.name, d.salary));
+
+}
+
+async function findFemalesOver30() {
+
+  const givenAge = 30;
+
+  const docs = await Person.find({ gender: 'Female', age: { $gte: givenAge } })
+
+    .sort({ salary: 1 }).select('name salary age').limit(10);
+
+  console.log('Females aged 30 or above:');
+
+  docs.forEach(d => console.log(d.age, d.name, d.salary));
+
+}
+
+async function countDocuments() {
+
+  console.log('Total Documents Count:', await Person.countDocuments());
+
+}
+
+async function deleteManyPersons() {
+
+  const result = await Person.deleteMany({ age: { $gte: 45 } });
+
+  console.log('Deleted documents:', result.deletedCount);
+
+}
+
+async function updateManyPersons() {
+
+  const result = await Person.updateMany(
+
+    { gender: 'Female' }, { $set: { salary: 5555 } });
+
+  console.log('Updated documents:', result.modifiedCount);
+
+}
+
+async function findByCity(city) {
+
+  const docs = await Person.find({ city }).select('name age city salary');
+
+  console.log(`People in ${city}:`, docs);
+
+}
+
+async function main() {
+
+  try {
+
+    await mongoose.connect(MONGO_URI);
+
+    console.log(`Connected to ${MONGO_URI}`);
+
+    await insertOne();
+
+    await insertMany();
+
+    await findAll();
+
+    await findFemalesOver30();
+
+    await countDocuments();
+
+    await deleteManyPersons();
+
+    await updateManyPersons();
+
+    await findByCity('London');
+
+  } catch (err) {
+
+    console.error('Error:', err);
+
+  } finally {
+
+    await mongoose.connection.close();
+
+    console.log('Connection closed');
+
+  }
+
+}
+
 main();
