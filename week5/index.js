@@ -1,5 +1,19 @@
+
+const {
+  Person,
+  connectDB,
+  insertOne,
+  insertMany,
+  findAll,
+  findFemalesOver30,
+  countDocuments,
+  deleteManyPersons,
+  updateManyPersons
+} = require("../Week4Lab");
+
 const express = require('express'); 
 const fs= require('fs') 
+const { Person } = require("./Week4Lab");
 const app = express(); 
 // Built-in middleware for parsing form data and JSON 
 app.use(express.urlencoded({ extended: true })); 
@@ -44,7 +58,7 @@ app.get('/GetStudent/:id', (req, res) => {
  
     console.log("GetStudent called"); 
  
-    fs.readFile(__dirname + "/students.json", "utf8", (err, data) => { 
+    fs.readFile(__dirname + "/student.json", "utf8", (err, data) => { 
  
         if (err) { 
             return res.status(500).json({ 
@@ -95,3 +109,101 @@ qualification: qual
 } 
 }); 
 });
+
+app.get("/persons", async (req, res) => {
+  try {
+    const persons = await Person.find({});
+    res.status(200).json({
+      status: true,
+      data: persons
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: false,
+      message: error.message
+    });
+  }
+});
+
+app.get("/persons", async (req, res) => {
+  try {
+    const persons = await Person.find({});
+    res.json({ status: true, data: persons });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+app.post("/insertOne", async (req, res) => {
+  try {
+    const { name, age, gender, salary } = req.body;
+    const result = await insertOne(name, age, gender, salary);
+    res.status(201).json(result);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+app.post("/insertMany", async (req, res) => {
+  try {
+    const result = await insertMany(req.body.persons);
+    res.status(201).json(result);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+app.get("/findAll", async (req, res) => {
+  try {
+    res.json(await findAll());
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+app.get("/femalesOver30", async (req, res) => {
+  try {
+    res.json(await findFemalesOver30());
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+app.get("/countPersons", async (req, res) => {
+  try {
+    res.json({ count: await countDocuments() });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+app.put("/updateManyPersons", async (req, res) => {
+  try {
+    res.json(await updateManyPersons());
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+app.delete("/deleteManyPersons", async (req, res) => {
+  try {
+    res.json(await deleteManyPersons());
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+const PORT = 5000;
+
+connectDB()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`);
+    });
+  })
+  .catch((error) => {
+    console.error("MongoDB connection failed:", error.message);
+    process.exit(1);
+  });
+
+
